@@ -3,22 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Barcode Kod Skayner</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>QR Kodni Yuklash va O'qish</title>
+  <style>
+    #output {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-
-  <h1>Barcode Kod orqali Mahsulotni Izlash</h1>
+  <h2>QR Kodni Fayldan Yuklash</h2>
   
-  <!-- Kamerani ko'rsatish uchun video -->
-  <video id="video" width="100%" height="auto" autoplay></video>
+  <!-- Faylni yuklash inputi -->
+  <input type="file" id="file-input" accept="image/*">
+  
+  <!-- QR koddan olingan ma'lumotni ko'rsatish -->
+  <div id="output"></div>
 
-  <div id="productInfo" class="product-info">
-    <h2 id="productName"></h2>
-    <p id="productPrice"></p>
-  </div>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
 
-  <script src="https://unpkg.com/quagga/dist/quagga.min.js"></script>
-  <script src="script.js"></script>
+  <script>
+    // Fayl yuklanganidan keyin QR kodni o'qish
+    document.getElementById('file-input').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = new Image();
+          img.onload = function() {
+            // Canvas yaratish va rasmni unga chizish
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            // Canvasda QR kodni o'qish
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
+            
+            if (qrCode) {
+              document.getElementById('output').textContent = `QR Kod: ${qrCode.data}`;
+            } else {
+              document.getElementById('output').textContent = 'QR kod topilmadi!';
+            }
+          };
+          img.src = event.target.result;
+        };
+        
+        // Faylni o'qish
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
 </body>
 </html>
