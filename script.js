@@ -9,8 +9,11 @@ const products = {
 function startScanner() {
   // Barcha kameralarni olish
   navigator.mediaDevices.enumerateDevices().then(devices => {
+    // Faqat video inputlarni tanlash (kameralar)
+    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    
     // Orqa kamerani tanlash
-    const backCamera = devices.find(device => device.kind === 'videoinput' && device.label.includes('back'));
+    const backCamera = videoDevices.find(device => device.label.toLowerCase().includes('back') || device.facing === 'environment');
 
     if (backCamera) {
       // Orqa kameraga ruxsat so'rash
