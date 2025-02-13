@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="uz">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,15 +11,17 @@
       font-size: 18px;
       font-weight: bold;
     }
+
     #video {
       width: 100%;
       height: auto;
     }
   </style>
 </head>
+
 <body>
   <h2>Shtrix Kodni Kamera Orqali O'qish</h2>
-  
+
   <!-- Kamera oqimi va natija ko'rsatish -->
   <video id="video" autoplay></video>
   <div id="output"></div>
@@ -32,23 +35,25 @@
       "1122334455": { name: "Mahsulot 3", price: 20000 }
     };
 
-    // Kamera ochish va video oqimini olish
     function startCamera() {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-          .then(function(stream) {
+        navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" } // orqa kamera
+        })
+          .then(function (stream) {
             const video = document.getElementById('video');
             video.srcObject = stream;
             video.play();
             initializeScanner();
           })
-          .catch(function(err) {
+          .catch(function (err) {
             alert("Kamera ochishda xato yuz berdi: " + err);
           });
+      } else {
+        alert("Kamera uchun ruxsat berilmagan yoki qurilmangizda kamera mavjud emas.");
       }
     }
 
-    // QuaggaJS bilan shtrix kodni o'qish
     function initializeScanner() {
       Quagga.init({
         inputStream: {
@@ -59,7 +64,7 @@
         decoder: {
           readers: ["code_128_reader", "ean_reader", "ean_13_reader", "upc_reader"]
         }
-      }, function(err) {
+      }, function (err) {
         if (err) {
           console.error(err);
           return;
@@ -67,18 +72,15 @@
         Quagga.start();
       });
 
-      // Shtrix kodni aniqlash va natijani chiqarish
-      Quagga.onDetected(function(result) {
+      Quagga.onDetected(function (result) {
         const barcode = result.codeResult.code;
         displayProductData(barcode);
       });
     }
 
-    // Mahsulotni ko'rsatish
     function displayProductData(barcode) {
       const product = products[barcode];
       const output = document.getElementById('output');
-
       if (product) {
         output.textContent = `Mahsulot: ${product.name}, Narxi: ${product.price} so'm`;
       } else {
@@ -86,8 +88,9 @@
       }
     }
 
-    // Kamerani ishga tushurish
     startCamera();
+
   </script>
 </body>
+
 </html>
