@@ -24,11 +24,22 @@ function startScanner() {
         target: video, // video element
         constraints: {
           facingMode: "environment"
+        },
+        area: { // Ko'rsatadigan joyni o'zgartirish
+          top: "0%",
+          left: "0%",
+          right: "0%",
+          bottom: "0%" // Tasvirning butun maydoni
         }
       },
       decoder: {
         readers: ["code_128_reader", "ean_reader", "ean_13_reader", "upc_reader"]
-      }
+      },
+      locator: {
+        patchSize: "medium", // Tasvirning aniqlik darajasi
+        halfSample: true // Tasvir o'lchamini qisqartirish
+      },
+      frequency: 10, // Har sekundda 10 marta skanerlash
     }, function(err) {
       if (err) {
         console.error("QuaggaJS xatolik: ", err);
