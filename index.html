@@ -3,84 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shtrix Kodni Yuklash va O'qish</title>
+  <title>Shtrix Kodni Kamera orqali O'qish</title>
   <style>
     #output {
       margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    #video {
+      width: 100%;
+      height: auto;
     }
   </style>
 </head>
 <body>
-  <h2>Shtrix Kodni Fayldan Yuklash</h2>
+  <h2>Shtrix Kodni Kamera Orqali O'qish</h2>
   
-  <!-- Faylni yuklash inputi -->
-  <input type="file" id="file-input" accept="image/*">
-  
-  <!-- Shtrix koddan olingan ma'lumotni ko'rsatish -->
+  <!-- Kamera oqimi va natija ko'rsatish -->
+  <video id="video" autoplay></video>
   <div id="output"></div>
 
+  <script src="https://unpkg.com/quagga@0.12.1/dist/quagga.min.js"></script>
   <script>
-    // Data.js faylida saqlangan shtrix kodlari (data bazasi)
+    // Mahsulotlar va ularning barcodlari
     const products = {
       "1234567890": { name: "Mahsulot 1", price: 10000 },
       "0987654321": { name: "Mahsulot 2", price: 15000 },
       "1122334455": { name: "Mahsulot 3", price: 20000 }
     };
 
-    // Fayl yuklanganidan keyin shtrix kodni o'qish
-    document.getElementById('file-input').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          const img = new Image();
-          img.onload = function() {
-            // Canvas yaratish va rasmni unga chizish
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            
-            // Canvasda barcodni o'qish
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            
-            // JavaScript uchun barcode reader kutubxonasi
-            const barcode = getBarcodeFromImage(imageData); // Barcode dekodlash uchun funksiyani chaqiramiz
-
-            if (barcode) {
-              fetchProductData(barcode);
-            } else {
-              document.getElementById('output').textContent = 'Shtrix kod topilmadi!';
-            }
-          };
-          img.src = event.target.result;
-        };
-        
-        // Faylni o'qish
-        reader.readAsDataURL(file);
+    // Kamera ochish va video oqimini olish
+    function startCamera() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+          .then(function(stream) {
+            const video = document.getElementById('video');
+            video.srcObject = stream;
+            video.play();
+            initializeScanner();
+          })
+          .catch(function(err) {
+            alert("Kamera ochishda xato yuz berdi: " + err);
+          });
       }
-    });
-
-    // Shtrix kodni o'qish (bu o'zingiz ishlatgan barcode kutubxonasiga bog'liq)
-    function getBarcodeFromImage(imageData) {
-      // Bu yerda shtrix kodni o'qish uchun kutubxona kodini ishlating
-      // Misol uchun: "BarcodeScanner.js" yoki boshqa kutubxona
-      // Bu faqat namuna funksiyasidir
-      return "1234567890"; // Misol uchun, faqat 1234567890 kiritilgan barcodni qaytaradi
     }
 
-    // Mahsulotni data.js bazasidan olish
-    function fetchProductData(barcode) {
+    // QuaggaJS bilan shtrix kodni o'qish
+    function initializeScanner() {
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: document.querySelector('#video') // video elementi
+        },
+        decoder: {
+          readers: ["code_128_reader", "ean_reader", "ean_13_reader", "upc_reader"]
+        }
+      }, function(err) {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        Quagga.start();
+      });
+
+      // Shtrix kodni aniqlash va natijani chiqarish
+      Quagga.onDetected(function(result) {
+        const barcode = result.codeResult.code;
+        displayProductData(barcode);
+      });
+    }
+
+    // Mahsulotni ko'rsatish
+    function displayProductData(barcode) {
       const product = products[barcode];
+      const output = document.getElementById('output');
 
       if (product) {
-        document.getElementById('output').textContent = `Mahsulot: ${product.name}, Narxi: ${product.price} so'm`;
+        output.textContent = `Mahsulot: ${product.name}, Narxi: ${product.price} so'm`;
       } else {
-        document.getElementById('output').textContent = 'Mahsulot topilmadi.';
+        output.textContent = 'Mahsulot topilmadi!';
       }
     }
+
+    // Kamerani ishga tushurish
+    startCamera();
   </script>
 </body>
 </html>
