@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Kodni Yuklash va O'qish</title>
+  <title>Shtrix Kodni Yuklash va O'qish</title>
   <style>
     #output {
       margin-top: 20px;
@@ -11,18 +11,23 @@
   </style>
 </head>
 <body>
-  <h2>QR Kodni Fayldan Yuklash</h2>
+  <h2>Shtrix Kodni Fayldan Yuklash</h2>
   
   <!-- Faylni yuklash inputi -->
   <input type="file" id="file-input" accept="image/*">
   
-  <!-- QR koddan olingan ma'lumotni ko'rsatish -->
+  <!-- Shtrix koddan olingan ma'lumotni ko'rsatish -->
   <div id="output"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
-
   <script>
-    // Fayl yuklanganidan keyin QR kodni o'qish
+    // Data.js faylida saqlangan shtrix kodlari (data bazasi)
+    const products = {
+      "1234567890": { name: "Mahsulot 1", price: 10000 },
+      "0987654321": { name: "Mahsulot 2", price: 15000 },
+      "1122334455": { name: "Mahsulot 3", price: 20000 }
+    };
+
+    // Fayl yuklanganidan keyin shtrix kodni o'qish
     document.getElementById('file-input').addEventListener('change', function(e) {
       const file = e.target.files[0];
       
@@ -38,14 +43,16 @@
             canvas.height = img.height;
             ctx.drawImage(img, 0, 0);
             
-            // Canvasda QR kodni o'qish
+            // Canvasda barcodni o'qish
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const qrCode = jsQR(imageData.data, canvas.width, canvas.height);
             
-            if (qrCode) {
-              document.getElementById('output').textContent = `QR Kod: ${qrCode.data}`;
+            // JavaScript uchun barcode reader kutubxonasi
+            const barcode = getBarcodeFromImage(imageData); // Barcode dekodlash uchun funksiyani chaqiramiz
+
+            if (barcode) {
+              fetchProductData(barcode);
             } else {
-              document.getElementById('output').textContent = 'QR kod topilmadi!';
+              document.getElementById('output').textContent = 'Shtrix kod topilmadi!';
             }
           };
           img.src = event.target.result;
@@ -55,6 +62,25 @@
         reader.readAsDataURL(file);
       }
     });
+
+    // Shtrix kodni o'qish (bu o'zingiz ishlatgan barcode kutubxonasiga bog'liq)
+    function getBarcodeFromImage(imageData) {
+      // Bu yerda shtrix kodni o'qish uchun kutubxona kodini ishlating
+      // Misol uchun: "BarcodeScanner.js" yoki boshqa kutubxona
+      // Bu faqat namuna funksiyasidir
+      return "1234567890"; // Misol uchun, faqat 1234567890 kiritilgan barcodni qaytaradi
+    }
+
+    // Mahsulotni data.js bazasidan olish
+    function fetchProductData(barcode) {
+      const product = products[barcode];
+
+      if (product) {
+        document.getElementById('output').textContent = `Mahsulot: ${product.name}, Narxi: ${product.price} so'm`;
+      } else {
+        document.getElementById('output').textContent = 'Mahsulot topilmadi.';
+      }
+    }
   </script>
 </body>
 </html>
